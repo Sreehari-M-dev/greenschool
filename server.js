@@ -53,16 +53,33 @@ const limitSchema = new mongoose.Schema({
 const Limit = mongoose.model('Limit', limitSchema);
 
 // --- Auth Middleware ---
+const PRINCIPAL_EMAIL = "sreeharimm558@gmail.com";
+
 const verifyToken = async (req, res, next) => {
     const idToken = req.headers.authorization?.split('Bearer ')[1];
-    if (!idToken) return res.status(401).json({ error: 'Unauthorized' });
+    if (!idToken) return res.status(401).json({ error: 'Unauthorized' });       
     try {
         const decodedToken = await admin.auth().verifyIdToken(idToken);
+        
+        // BACKEND DOMAIN RESTRICTION - Crucial for real security!
+        const userEmail = decodedToken.email;
+        if (!userEmail.endsWith('@gpcchelakkara.ac.in') && userEmail !== PRINCIPAL_EMAIL) {
+            return res.status(403).json({ error: 'Forbidden: School email required' });
+        }
+
         req.user = decodedToken;
         next();
     } catch (error) {
         res.status(401).json({ error: 'Invalid Token' });
     }
+};
+
+// --- Principal Only Middleware ---
+const verifyPrincipal = (req, res, next) => {
+    if (req.user.email !== PRINCIPAL_EMAIL) {
+        return res.status(403).json({ error: 'Forbidden: Principal access required' });
+    }
+    next();
 };
 
 // --- Routes ---
@@ -109,7 +126,7 @@ app.post('/api/campaigns', verifyToken, async (req, res) => {
 // --- PRINCIPAL ROUTES ---
 
 // Get all records (School-wide view)
-app.get('/api/all-records', verifyToken, async (req, res) => {
+app.get('/api/all-records', verifyToken, verifyPrincipal, async (req, res) => {
     try {
         const { month } = req.query; // format YYYY-MM
         let query = {};
@@ -127,7 +144,7 @@ app.get('/api/all-records', verifyToken, async (req, res) => {
 });
 
 // Get limits for a specific month
-app.get('/api/limits/:month', verifyToken, async (req, res) => {
+app.get('/api/limits/:month', verifyToken, verifyPrincipal, async (req, res) => {
     try {
         let limits = await Limit.findOne({ month: req.params.month });
         if (!limits) {
@@ -140,7 +157,7 @@ app.get('/api/limits/:month', verifyToken, async (req, res) => {
 });
 
 // Set limits for a specific month
-app.post('/api/limits', verifyToken, async (req, res) => {
+app.post('/api/limits', verifyToken, verifyPrincipal, async (req, res) => {
     try {
         const { month, electricity, water, waste } = req.body;
         const updated = await Limit.findOneAndUpdate(

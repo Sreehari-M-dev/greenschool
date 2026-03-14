@@ -25,11 +25,12 @@ const userNameDisplay = document.getElementById('user-display-name');
 
 const btnLogin = document.getElementById('btn-google-login');
 const btnLogout = document.getElementById('btn-logout');
+const btnEditName = document.getElementById('btn-edit-name');
 
 // Backend API
 // const API_URL = "http://localhost:3000/api"; 
 // TODO: Replace this with your actual Render URL later
-const API_URL = "https://your-render-url-here.onrender.com/api"; 
+const API_URL = "https://greenschool-gjnb.onrender.com/api"; 
 
 // --- CONFIGURATION ---
 // IMPORTANT: Change this to the exact email address the Principal will use to log in!
@@ -40,7 +41,15 @@ let currentChart = null; // Re-declare fixed variable
 // Auth State Monitor
 onAuthStateChanged(auth, async (user) => {
     if (user) {
-        
+
+        // --- EMAIL DOMAIN RESTRICTION ---
+        // Only allow gpcchelakkara.ac.in emails, except for the Principal
+        if (!user.email.endsWith('gpcchelakkara.ac.in') && user.email !== PRINCIPAL_EMAIL) {
+            alert("Access Denied: Please log in with your official @gpcchelakkara.ac.in school email address.");
+            signOut(auth);
+            return;
+        }
+
         // --- CUSTOM DISPLAY NAME CHECK ---
         // If a user doesn't have a display name set by our system yet, force them to set it.
         // Google sets it by default, but we'll use a custom property or just check if they've approved it.
@@ -52,22 +61,7 @@ onAuthStateChanged(auth, async (user) => {
         
         // If new user OR somehow no display name, show modal and STOP rendering dash until they finish
         if (isNewUser || !user.displayName) {
-            document.getElementById('profile-setup-modal').classList.remove('hidden');
-            authSection.classList.add('hidden');
-            
-            // Overwrite form submission specifically for this user
-            const profileForm = document.getElementById('profile-setup-form');
-            profileForm.onsubmit = async (e) => {
-                e.preventDefault();
-                const newName = document.getElementById('custom-display-name').value;
-                try {
-                    await updateProfile(user, { displayName: newName });
-                    document.getElementById('profile-setup-modal').classList.add('hidden');
-                    continueLoginFlow(user); // Resume login flow
-                } catch (error) {
-                    alert("Error saving name.");
-                }
-            };
+            showProfileModal(user, true); // true = forced
             return; // STOP execution here untill they submit
         }
 
@@ -82,6 +76,55 @@ onAuthStateChanged(auth, async (user) => {
         document.getElementById('profile-setup-modal').classList.add('hidden');
         userControls.classList.add('hidden');
     }
+});
+
+function showProfileModal(user, isForced) {
+    const modal = document.getElementById('profile-setup-modal');
+    const cancelBtn = document.getElementById('btn-cancel-name');
+    
+    modal.classList.remove('hidden');
+    
+    // If it's optional, let them cancel out of it
+    if (isForced) {
+        cancelBtn.classList.add('hidden');
+        authSection.classList.add('hidden'); // Hide underlying login screen
+    } else {
+        cancelBtn.classList.remove('hidden');
+        cancelBtn.onclick = () => modal.classList.add('hidden');
+    }
+    
+    // Pre-fill if they already have one
+    document.getElementById('custom-display-name').value = user.displayName || '';
+    
+    const profileForm = document.getElementById('profile-setup-form');
+    profileForm.onsubmit = async (e) => {
+        e.preventDefault();
+        const newName = document.getElementById('custom-display-name').value;
+        try {
+            await updateProfile(user, { displayName: newName });
+            
+            // Firebase caches user data; force reload to ensure the new name displays instantly
+            await user.reload(); 
+            
+            modal.classList.add('hidden');
+            
+            // If forced, they were blocked from login, so resume it. 
+            // Else, just update the top nav text dynamically without full reload.
+            if (isForced) {
+                continueLoginFlow(user); 
+            } else {
+                userNameDisplay.innerText = `${newName} (${user.email})`;
+            }
+        } catch (error) {
+            alert("Error saving name.");
+            console.error(error);
+        }
+    };
+}
+
+// Open modal manually
+btnEditName.addEventListener('click', () => {
+    if(auth.currentUser) showProfileModal(auth.currentUser, false); // false = optional (shows Cancel)
 });
 
 async function continueLoginFlow(user) {
