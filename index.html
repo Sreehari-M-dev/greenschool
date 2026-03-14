@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Green School Monitoring</title>
+  <title>GPTC Green</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Chart.js for Analytics -->
@@ -14,11 +14,12 @@
 <!-- Navigation -->
 <nav class="bg-green-600 text-white p-4 shadow-md">
   <div class="container mx-auto flex justify-between items-center">
-    <h1 class="text-2xl font-bold flex items-center gap-2">🌱 Green School Digital</h1>
-    <div id="user-controls" class="hidden flex gap-4 items-center">
-      <span id="user-display-name"></span>
-      <button id="btn-logout" class="bg-gray-500 hover:bg-gray-600 px-4 py-2 rounded">Log Out</button>
-      <button id="btn-delete-account" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded font-bold" title="Permanently Delete Account">Delete Account</button>
+    <h1 class="text-2xl font-bold flex items-center gap-2">🌱 GPTC Green</h1>
+    <div id="user-controls" class="hidden flex gap-4 items-center flex-wrap justify-end">
+      <span id="user-display-name" class="font-medium"></span>
+      <button id="btn-edit-name" class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded text-sm">Edit Name</button>
+      <button id="btn-logout" class="bg-gray-500 hover:bg-gray-600 px-4 py-2 rounded text-sm">Log Out</button>
+      <button id="btn-delete-account" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded font-bold text-sm" title="Permanently Delete Account">Delete Account</button>
     </div>
   </div>
 </nav>
@@ -37,13 +38,14 @@
   </section>
 
   <!-- Complete Profile modal (Hidden by default) -->
-  <div id="profile-setup-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full mx-4">
-      <h3 class="text-xl font-bold mb-4">Complete Your Profile</h3>
-      <p class="text-sm text-gray-600 mb-4">Please enter the full name you want displayed on the schools official logs.</p>
+  <div id="profile-setup-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full mx-auto text-gray-800">
+      <h3 class="text-xl font-bold mb-4" id="profile-modal-title">Complete Your Profile</h3>
+      <p class="text-sm text-gray-600 mb-4" id="profile-modal-desc">Please enter the full name you want displayed on the schools official logs.</p>
       <form id="profile-setup-form">
         <input type="text" id="custom-display-name" class="w-full border rounded p-2 mb-4" placeholder="First and Last Name" required>
-        <button type="submit" class="bg-green-600 text-white px-4 py-2 w-full rounded hover:bg-green-700">Save Name</button>
+        <button type="submit" class="bg-green-600 text-white px-4 py-2 w-full rounded hover:bg-green-700 font-medium">Save Name</button>
+        <button type="button" id="btn-cancel-name" class="mt-3 text-gray-500 w-full text-center hover:underline hidden">Cancel</button>
       </form>
     </div>
   </div>
@@ -189,6 +191,12 @@
   </section>
 
 </main>
+
+<footer class="mt-8 py-6 text-center text-gray-500 text-sm">
+   <p>&copy; 2026 GPTC Green School Monitoring.</p>
+   <a href="https://sreehari-m-dev.github.io/greenschool" class="hover:underline hover:text-green-600 mx-2">Home</a> |
+   <a href="./privacy.html" class="hover:underline hover:text-green-600 mx-2">Privacy Policy</a>
+</footer>
 
 <!-- Firebase SDK version 9 Modular -->
 <script type="module" src="./app.js"></script>
